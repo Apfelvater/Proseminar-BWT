@@ -7,8 +7,41 @@
 #                                                   #
 #####################################################
 
-import sys
 from bwt_tools_lib import *
+
+import sys
+import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
+
+# Misc.:
+def draw_graph(V, E):
+    # G = (V, E)
+    nx_G = nx.Graph()
+    nx_G.add_nodes_from(V)
+    for edge in E:
+        nx_G.add_edge(edge[0], edge[2], weight=edge[1]+1) # edge = (c1, i, c2)
+    pos = nx.spring_layout(nx_G, seed=7)
+    nx.draw_networkx(nx_G, pos, arrows=False, with_labels=True)
+    edge_labels = nx.get_edge_attributes(nx_G, "weight")
+    nx.draw_networkx_edge_labels(nx_G, pos, edge_labels)
+    plt.show()
+
+def decode_graph(G):
+    V, E, adj = G[0][:], G[1][:], G[2][:]
+
+    while(E):
+        c = []
+        s_edge = E[0]
+        s_node = s_edge[0]
+        #TODO: hier while schleife mit walk through edges und folgenden statements:
+        c.append(adj[s_node][1])
+        adj[s_node].pop()
+
+        if adj[s_node] == []:
+            adj.remove(s_node)
+
+
 
 def cycles_to_lyndon(cycles, u) -> list[str]:
     '''Applies lambda_L on the cycles (C_1, ..., C_n) where C_1 starts with the smallest number.\n
@@ -22,11 +55,22 @@ def cycles_to_lyndon(cycles, u) -> list[str]:
     return factorization
 
 def context_graph(u, pi, k = -1):
-
+    c = None # Contexts of u, pi
+    
     def edges_of_context_graph():
-        pass
+        E = []          # e.g. [("aa", 1, "ba"), ...]
+        adjacency = {}  # e.g. {"aa" : [("ba", 1), ...], ...}
+        # Creating the edges
+        for i in range(len(u)):
+            edge = (c[i], i, u[i] + c[i][0])
+            if edge[0] not in adjacency:
+                adjacency[edge[0]] = [(edge[2], edge[1])]
+            else:
+                adjacency[edge[0]].append((edge[2], edge[1]))
+            E.append(edge)
+        return E, adjacency
 
-    def vertices_of_context_graph():
+    def contexts():
         c = []
         for j in range(len(pi)):
             context = ""
@@ -35,15 +79,14 @@ def context_graph(u, pi, k = -1):
                 next_pos = pi[next_pos]
                 context += u[next_pos]
             c += [context]
-        return set(c)
+        return c
 
-    V = vertices_of_context_graph()
-    print(list(V))
-    E = edges_of_context_graph()
+    c = contexts()
+    E, adj = edges_of_context_graph()
 
-    return (E, V)
+    return (sorted(set(c)), E, adj)
 
-def M(w, k = -1):
+def M(w, k = -1) -> list:
      conj_classes = conjugacy_classes(w)
      k_sort(conj_classes, k)
      return conj_classes
@@ -96,11 +139,14 @@ def decode_BWTS(u, return_lyndon_factorization = False):
 def decode_ST(k, L, i):
     raise NotImplementedError
 
-def decode_LST(k, L):
+def decode_LST(k, L, draw_context_graph = False):
     pi = standard_permutation(L)
     cycles = find_cycles(pi)
     graph = context_graph(L, pi, k)
-    # Graph to w (??)
+    if draw_context_graph:
+        draw_graph(graph[0], graph[1])
+    #TODO: Graph to Lyndon Factorization
+
 
 def test():
     test_sets = [{
