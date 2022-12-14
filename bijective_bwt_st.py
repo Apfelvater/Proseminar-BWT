@@ -33,15 +33,11 @@ def decode_graph(G):
     while(E):
         c = []
         s_edge = E[0]
-        s_node = s_edge[0]
-        #TODO: hier while schleife mit walk through edges und folgenden statements:
-        c.append(adj[s_node][1])
-        adj[s_node].pop()
-
-        if adj[s_node] == []:
-            adj.remove(s_node)
-
-
+        current_node = s_edge[0]
+        while adj[current_node] != []:
+            c.append(adj[current_node][1])
+            adj[current_node].pop()
+            adj.remove(current_node)
 
 def cycles_to_lyndon(cycles, u) -> list[str]:
     '''Applies lambda_L on the cycles (C_1, ..., C_n) where C_1 starts with the smallest number.\n
