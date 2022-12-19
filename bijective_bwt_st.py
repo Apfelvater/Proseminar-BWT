@@ -28,17 +28,42 @@ def draw_graph(V, E):
     plt.show()
 # </Misc>
 
+def get_next_edge(adj, node):
+    if len(adj[node]) == 0:
+        return None
+    else:
+        edge_out = adj[node].pop(0)
+        return (node, edge_out[1], edge_out[0])
+
 def decode_graph(G, start = 0):
-    V, E, adj = G[0][:], G[1][:], G[2][:]
+    E   = G[1]
+    adj = G[2]
 
     curr_edge = E[start]
+    # Removing the startedge from edgelist and adjacency-list
     E.remove(curr_edge)
+    adj[curr_edge[0]].remove((curr_edge[2], curr_edge[1]))
 
     # Positions in L of symbols of reversed(w)
     positions = [curr_edge[1]]
 
     while(E):
-        pass
+        # step to the next node
+        curr_node = curr_edge[2]
+
+        # this current edge will be the outgoing remaining edge with lowest weight or None, if it has none
+        curr_edge = get_next_edge(adj, curr_node)
+        
+        if not curr_edge:
+            # then this current edge will be the lowest remaining edge of the whole graph
+            curr_edge = E.pop(0)
+            adj[curr_edge[0]].remove((curr_edge[2], curr_edge[1]))
+        else:
+            E.remove(curr_edge)
+
+        # Positions in L of symbols of reversed(w)
+        positions += [curr_edge[1]]
+    return positions
 
 def cycles_to_lyndon(cycles, u) -> list[str]:
     '''Applies lambda_L on the cycles (C_1, ..., C_n) where C_1 starts with the smallest number.\n
@@ -52,6 +77,7 @@ def cycles_to_lyndon(cycles, u) -> list[str]:
     return factorization
 
 def context_graph(u, pi, k = -1):
+    '''Returns the context graph in the form (V, E, Adjacency-List)\nV : list(str)\nE like [("aa", 1, "ba"), ...]\nAjacency-List like {node : [(node, weight), ...], ...}'''
     c = None # Contexts of u, pi
     
     def edges_of_context_graph():
@@ -141,6 +167,7 @@ def decode_LST(k, L, draw_context_graph = False):
     graph = context_graph(L, pi, k)
     if draw_context_graph:
         draw_graph(graph[0], graph[1])
+    print(decode_graph(graph))
     #TODO: Graph to w
 
 
