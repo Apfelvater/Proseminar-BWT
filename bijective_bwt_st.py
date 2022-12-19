@@ -59,7 +59,7 @@ def context_graph(u, pi, k = -1):
         adjacency = {context:[] for context in c}  # e.g. {"aa" : [("ba", 1), ...], ...}
         # Creating the edges
         for i in range(len(u)):
-            edge = (c[i], i, u[i] + c[i][0])
+            edge = (c[i], i, u[i] + c[i][:-1])
             adjacency[edge[0]].append((edge[2], edge[1]))
             E.append(edge)
         return E, adjacency
