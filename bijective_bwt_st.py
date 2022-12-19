@@ -14,7 +14,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Misc.:
+# <Misc>
 def draw_graph(V, E):
     # G = (V, E)
     nx_G = nx.Graph()
@@ -26,18 +26,19 @@ def draw_graph(V, E):
     edge_labels = nx.get_edge_attributes(nx_G, "weight")
     nx.draw_networkx_edge_labels(nx_G, pos, edge_labels)
     plt.show()
+# </Misc>
 
-def decode_graph(G):
+def decode_graph(G, start = 0):
     V, E, adj = G[0][:], G[1][:], G[2][:]
 
+    curr_edge = E[start]
+    E.remove(curr_edge)
+
+    # Positions in L of symbols of reversed(w)
+    positions = [curr_edge[1]]
+
     while(E):
-        c = []
-        s_edge = E[0]
-        current_node = s_edge[0]
-        while adj[current_node] != []:
-            c.append(adj[current_node][1])
-            adj[current_node].pop()
-            adj.remove(current_node)
+        pass
 
 def cycles_to_lyndon(cycles, u) -> list[str]:
     '''Applies lambda_L on the cycles (C_1, ..., C_n) where C_1 starts with the smallest number.\n
@@ -55,14 +56,11 @@ def context_graph(u, pi, k = -1):
     
     def edges_of_context_graph():
         E = []          # e.g. [("aa", 1, "ba"), ...]
-        adjacency = {}  # e.g. {"aa" : [("ba", 1), ...], ...}
+        adjacency = {context:[] for context in c}  # e.g. {"aa" : [("ba", 1), ...], ...}
         # Creating the edges
         for i in range(len(u)):
             edge = (c[i], i, u[i] + c[i][0])
-            if edge[0] not in adjacency:
-                adjacency[edge[0]] = [(edge[2], edge[1])]
-            else:
-                adjacency[edge[0]].append((edge[2], edge[1]))
+            adjacency[edge[0]].append((edge[2], edge[1]))
             E.append(edge)
         return E, adjacency
 
@@ -77,7 +75,7 @@ def context_graph(u, pi, k = -1):
             c += [context]
         return c
 
-    c = contexts()
+    c = contexts()  # These are including doubles! len(c) == len(u)
     E, adj = edges_of_context_graph()
 
     return (sorted(set(c)), E, adj)
@@ -94,21 +92,23 @@ def LM(w, k = -1):
     k_sort(conj_classes, k)
     return conj_classes
 
-def BWT(w):
+def Transform(w, k = -1):
     res = ""
-    for u in M(w):
+    start_i = -1
+    i = 0
+    for u in M(w, k):
+        if u == w:
+            start_i = i
         res += u[-1]
-    return res
+        i += 1
+    return res, start_i
+
+BWT = lambda w: Transform(w)
+ST = lambda w, k: Transform(w, k)
 
 def BWTS(w):
     res = ""
     for u in LM(w):
-        res += u[-1]
-    return res
-
-def ST(w, k):
-    res = ""
-    for u in M(w, k):
         res += u[-1]
     return res
 
@@ -141,7 +141,7 @@ def decode_LST(k, L, draw_context_graph = False):
     graph = context_graph(L, pi, k)
     if draw_context_graph:
         draw_graph(graph[0], graph[1])
-    #TODO: Graph to Lyndon Factorization
+    #TODO: Graph to w
 
 
 def test():
@@ -154,12 +154,12 @@ def test():
         "lst"     : "abababaccccbbcbb"
     }]
     for test_set in test_sets:
-        assert(BWT(test_set["w"]) == test_set["bwt"])
+        assert(BWT(test_set["w"])[0] == test_set["bwt"])
 
         assert(BWTS(test_set["w"]) == test_set["bwts"])
         assert(decode_BWTS(test_set["bwts"]) == test_set["w"])
 
-        assert(ST(test_set["w"], test_set["k"]) == test_set["st"])
+        assert(ST(test_set["w"], test_set["k"])[0] == test_set["st"])
 
         assert(LST(test_set["w"], test_set["k"]) == test_set["lst"])
         assert(decode_LST(test_set["k"], test_set["lst"]) == test_set["w"])
