@@ -47,7 +47,7 @@ def decode_graph(G, start = 0):
     # Positions in L of symbols of reversed(w)
     positions = [curr_edge[1]]
 
-    while(E):
+    while(E): #make it work!! TODO
         # step to the next node
         curr_node = curr_edge[2]
 
@@ -163,12 +163,16 @@ def decode_ST(k, L, i):
 
 def decode_LST(k, L, draw_context_graph = False):
     pi = standard_permutation(L)
-    cycles = find_cycles(pi)
+    ##cycles = find_cycles(pi)
     graph = context_graph(L, pi, k)
     if draw_context_graph:
         draw_graph(graph[0], graph[1])
-    print(decode_graph(graph))
-    #TODO: Graph to w
+    reversed_pos = decode_graph(graph)
+    # resolve positions to w using L
+    original_w = ""
+    for p in reversed_pos[::-1]:
+        original_w += L[p]
+    return original_w
 
 
 def test():
