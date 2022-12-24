@@ -129,8 +129,11 @@ def Transform(w, k = -1):
         i += 1
     return res, start_i
 
-BWT = lambda w: Transform(w)
-ST = lambda w, k: Transform(w, k)
+def BWT(w):
+    return Transform(w)
+
+def ST(w, k):
+    return Transform(w, k)
 
 def BWTS(w):
     res = ""
@@ -145,34 +148,27 @@ def LST(w, k):
     return res
 
 def decode_BWT(L, i):
-    F = L.sort()
-    res = "" 
-    raise NotImplementedError
-
-def decode_BWTS(u, return_lyndon_factorization = False):
-    pi = standard_permutation(u)
-    cycles = find_cycles(pi)
-    lf = cycles_to_lyndon(cycles, u)
-    if return_lyndon_factorization:
-        return lf
-    else:
-        return "".join(lf)
-
-def decode_ST(k, L, i):
-    raise NotImplementedError
-
-def decode_LST(k, L, draw_context_graph = False):
     pi = standard_permutation(L)
-    ##cycles = find_cycles(pi)
+    cycles = find_cycles(pi, i)
+    lf = cycles_to_lyndon(cycles, L)
+    return "".join(lf)
+
+def decode_BWTS(L):
+    return decode_BWT(L, 0)
+
+def decode_ST(k, L, i, draw_context_graph = False):
+    pi = standard_permutation(L)
+
     graph = context_graph(L, pi, k)
     if draw_context_graph:
         draw_graph(graph[0], graph[1])
-    reversed_pos = decode_graph(graph)
+    reversed_pos = decode_graph(graph, i)
+
     # resolve positions to w using L
-    original_w = ""
-    for p in reversed_pos[::-1]:
-        original_w += L[p]
-    return original_w
+    return resolve_positions(reversed(reversed_pos), L)
+
+def decode_LST(k, L, draw_context_graph = False):
+    return decode_ST(k, L, 0, draw_context_graph)
 
 
 def test():
@@ -185,12 +181,18 @@ def test():
         "lst"     : "abababaccccbbcbb"
     }]
     for test_set in test_sets:
-        assert(BWT(test_set["w"])[0] == test_set["bwt"])
+        bwt = BWT(test_set["w"])
+        assert(bwt[0] == test_set["bwt"])
+        retransformed = decode_BWT(bwt[0], bwt[1])
+        assert(retransformed == test_set["w"])
 
         assert(BWTS(test_set["w"]) == test_set["bwts"])
         assert(decode_BWTS(test_set["bwts"]) == test_set["w"])
 
-        assert(ST(test_set["w"], test_set["k"])[0] == test_set["st"])
+        st = ST(test_set["w"], test_set["k"])
+        assert(st[0] == test_set["st"])
+        retransformed = decode_ST(test_set["k"], st[0], st[1])
+        assert(retransformed == test_set["w"])
 
         assert(LST(test_set["w"], test_set["k"]) == test_set["lst"])
         assert(decode_LST(test_set["k"], test_set["lst"]) == test_set["w"])

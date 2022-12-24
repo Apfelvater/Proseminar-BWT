@@ -69,18 +69,20 @@ def standard_permutation(u : str) -> list[int]:
                     break
     return pi
 
-def find_cycles(pi : list) -> list[list]:
+def find_cycles(pi : list, pos_0 = 0) -> list[list]:
     cycles = []
-    pos_0 = 0
     while pos_0 < len(pi):
         # Start of current circle
         i = pos_0
         c = [i]
+
+        # Walking through the current cycle
         while(pi[i] != c[0]):
             # We've not come full circle yet.
             i = pi[i]
             c.append(i)
         cycles.append(c)
+        
         # Finding next pos_0 == start of next circle
         pos_found = False
         while (not pos_found):
@@ -94,3 +96,11 @@ def find_cycles(pi : list) -> list[list]:
             for c in cycles:
                 pos_found = pos_found and not (pos_0 in c)
     return cycles
+
+def resolve_positions(pos_list, L):
+    '''Returns the string whos characters are represented by their positions(in L) stored in pos_list.\n
+    e.g. resolve_postitions([3, 5, 2], "foobar") -> "bro"'''
+    res = ""
+    for pos in pos_list:
+        res += L[pos]
+    return res
